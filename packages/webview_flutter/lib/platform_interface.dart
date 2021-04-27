@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -383,6 +384,7 @@ class WebSettings {
     this.debuggingEnabled,
     this.gestureNavigationEnabled,
     @required this.userAgent,
+    this.mixedContentMode,
   }) : assert(userAgent != null);
 
   /// The JavaScript execution mode to be used by the webview.
@@ -410,6 +412,9 @@ class WebSettings {
   ///
   /// See also: [WebView.gestureNavigationEnabled]
   final bool gestureNavigationEnabled;
+
+  ///
+  final MixedContentMode mixedContentMode;
 
   @override
   String toString() {
@@ -521,5 +526,23 @@ abstract class WebViewPlatform {
   Future<bool> clearCookies() {
     throw UnimplementedError(
         "WebView clearCookies is not implemented on the current platform");
+  }
+
+  /// Set cookies for the [WebView] instances.
+  Future<void> setCookies(List<Cookie> cookies) {
+    throw UnimplementedError(
+        "WebView setCookies is not implemented on the current platform");
+  }
+
+  /// Whether there is cookie for the [WebView] instances.
+  Future<bool> hasCookies() {
+    throw UnimplementedError(
+        "WebView hasCookies is not implemented on the current platform");
+  }
+
+  /// Get all cookies from the [WebView] instances.
+  Future<List<Cookie>> getCookies(String url) {
+    throw UnimplementedError(
+        "WebView getCookies is not implemented on the current platform");
   }
 }

@@ -1,3 +1,8 @@
+## 1.0.7+1
+
+* Add setCookies and getCookies for Android WebView.
+  * See: https://github.com/iliYF/plugins/tree/webview_flutter-v1/packages/webview_flutter
+
 ## 1.0.7
 
 * Minor documentation update to indicate known issue on iOS 13.4 and 13.5.

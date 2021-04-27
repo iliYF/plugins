@@ -13,6 +13,7 @@ import android.os.Message;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -350,7 +351,13 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
       switch (key) {
         case "jsMode":
           Integer mode = (Integer) settings.get(key);
-          if (mode != null) updateJsMode(mode);
+          if (mode != null) updateJsMode(mode.intValue());
+          break;
+        case "mixedContentMode":
+          Object value = settings.get(key);
+          if (value != null) {
+            updateMixedContentMode(((Integer) value).intValue());
+          }
           break;
         case "hasNavigationDelegate":
           final boolean hasNavigationDelegate = (boolean) settings.get(key);
@@ -391,6 +398,24 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     }
   }
 
+  private void updateMixedContentMode(int mode) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      switch (mode) {
+        case 0:
+          webView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+          break;
+        case 1:
+          webView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+          break;
+        case 2:
+          webView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+          break;
+        default:
+          //throw new IllegalArgumentException("Trying to set unknown mixed content mode: " + mode);
+          break;
+      }
+    }
+  }
   private void updateAutoMediaPlaybackPolicy(int mode) {
     // This is the index of the AutoMediaPlaybackPolicy enum, index 1 is always_allow, for all
     // other values we require a user gesture.

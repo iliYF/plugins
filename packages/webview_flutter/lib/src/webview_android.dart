@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -60,4 +61,15 @@ class AndroidWebView implements WebViewPlatform {
 
   @override
   Future<bool> clearCookies() => MethodChannelWebViewPlatform.clearCookies();
+
+  @override
+  Future<List<Cookie>> getCookies(String url) =>
+      MethodChannelWebViewPlatform.getCookies(url);
+
+  @override
+  Future<bool> hasCookies() => MethodChannelWebViewPlatform.hasCookies();
+
+  @override
+  Future<void> setCookies(List<Cookie> cookies) =>
+      MethodChannelWebViewPlatform.setCookies(cookies);
 }

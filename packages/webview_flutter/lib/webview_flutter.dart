@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -127,6 +128,23 @@ class SurfaceAndroidWebView extends AndroidWebView {
   }
 }
 
+/// Describes the state of mixed content(e.g. http content in https pages) support in a given web view.
+///
+/// Only works in Android.
+///
+/// See also https://developer.android.com/reference/android/webkit/WebSettings.html#MIXED_CONTENT_ALWAYS_ALLOW
+/// for these 3 options.
+enum MixedContentMode {
+  /// See also Android `MIXED_CONTENT_ALWAYS_ALLOW` option
+  alwaysAllow,
+
+  /// See also Android `MIXED_CONTENT_NEVER_ALLOW` option
+  neverAllow,
+
+  /// See also Android `MIXED_CONTENT_COMPATIBILITY_MODE` option
+  compatibilityMode,
+}
+
 /// Decides how to handle a specific navigation request.
 ///
 /// The returned [NavigationDecision] determines how the navigation described by
@@ -221,6 +239,7 @@ class WebView extends StatefulWidget {
     this.debuggingEnabled = false,
     this.gestureNavigationEnabled = false,
     this.userAgent,
+    this.mixedContentMode,
     this.initialMediaPlaybackPolicy =
         AutoMediaPlaybackPolicy.require_user_action_for_all_media_types,
   })  : assert(javascriptMode != null),
@@ -388,6 +407,9 @@ class WebView extends StatefulWidget {
   /// By default `userAgent` is null.
   final String userAgent;
 
+  ///
+  final MixedContentMode mixedContentMode;
+
   /// Which restrictions apply on automatic media playback.
   ///
   /// This initial value is applied to the platform's webview upon creation. Any following
@@ -470,6 +492,7 @@ WebSettings _webSettingsFromWidget(WebView widget) {
     debuggingEnabled: widget.debuggingEnabled,
     gestureNavigationEnabled: widget.gestureNavigationEnabled,
     userAgent: WebSetting<String>.of(widget.userAgent),
+    mixedContentMode: widget.mixedContentMode,
   );
 }
 
@@ -502,11 +525,17 @@ WebSettings _clearUnchangedWebSettings(
     userAgent = newValue.userAgent;
   }
 
+  MixedContentMode mixedContentMode;
+  if (currentValue.mixedContentMode != newValue.mixedContentMode) {
+    mixedContentMode = newValue.mixedContentMode;
+  }
+
   return WebSettings(
     javascriptMode: javascriptMode,
     hasNavigationDelegate: hasNavigationDelegate,
     debuggingEnabled: debuggingEnabled,
     userAgent: userAgent,
+    mixedContentMode: mixedContentMode,
   );
 }
 
@@ -788,6 +817,17 @@ class CookieManager {
   ///
   /// Returns true if cookies were present before clearing, else false.
   Future<bool> clearCookies() => WebView.platform.clearCookies();
+
+  /// Set cookies for the [WebView] instances.
+  Future<void> setCookies(List<Cookie> cookies) =>
+      WebView.platform.setCookies(cookies);
+
+  /// Whether there is cookie for the [WebView] instances.
+  Future<bool> hasCookies() => WebView.platform.hasCookies();
+
+  /// Get all cookies from the [WebView] instances.
+  Future<List<Cookie>> getCookies(String url) =>
+      WebView.platform.getCookies(url);
 }
 
 // Throws an ArgumentError if `url` is not a valid URL string.

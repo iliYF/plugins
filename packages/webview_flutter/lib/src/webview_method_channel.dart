@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 
@@ -160,6 +161,70 @@ class MethodChannelWebViewPlatform implements WebViewPlatformController {
         .then<bool>((dynamic result) => result);
   }
 
+  /// Method channel implementation for [WebViewPlatform.setCookies].
+  static Future<void> setCookies(List<Cookie> cookies) {
+    final transferCookies = cookies.map((Cookie c) {
+      final output = <String, dynamic>{
+        'name': c.name,
+        'value': c.value,
+        'path': c.path,
+        'domain': c.domain,
+        'secure': c.secure,
+        'httpOnly': c.httpOnly,
+        'asString': c.toString(),
+      };
+
+      if (c.expires != null) {
+        output['expires'] = c.expires.millisecondsSinceEpoch ~/ 1000;
+      }
+
+      return output;
+    }).toList();
+
+    return _cookieManagerChannel.invokeMethod('setCookies', transferCookies);
+  }
+
+  /// Method channel implementation for [WebViewPlatform.hasCookies].
+  static Future<bool> hasCookies() {
+    return _cookieManagerChannel
+        .invokeMethod<bool>('hasCookies')
+        .then<bool>((dynamic result) => result ?? false);
+  }
+
+  /// Method channel implementation for [WebViewPlatform.getCookies].
+  static Future<List<Cookie>> getCookies(String url) {
+    return _cookieManagerChannel
+        .invokeListMethod<Map>('getCookies', {'url': url}).then((results) {
+      if (results == null) {
+        return <Cookie>[];
+      }
+
+      return results.map((Map result) {
+        final c = Cookie(result['name'] ?? '',
+            _removeInvalidCharacter(result['value'] ?? ''))
+          // following values optionally work on iOS only
+          ..path = result['path']
+          ..domain = result['domain']
+          ..secure = result['secure'] ?? false
+          ..httpOnly = result['httpOnly'] ?? true;
+
+        if (result['expires'] != null) {
+          c.expires = DateTime.fromMillisecondsSinceEpoch(
+              (result['expires'] * 1000).toInt());
+        }
+
+        return c;
+      }).toList();
+    });
+  }
+
+  static String _removeInvalidCharacter(String value) {
+    // Remove Invalid Character
+    var valueModified = value.replaceAll('\\"', "'");
+    valueModified = valueModified.replaceAll(String.fromCharCode(32), "");
+    return valueModified;
+  }
+
   static Map<String, dynamic> _webSettingsToMap(WebSettings settings) {
     final Map<String, dynamic> map = <String, dynamic>{};
     void _addIfNonNull(String key, dynamic value) {
@@ -182,6 +247,7 @@ class MethodChannelWebViewPlatform implements WebViewPlatformController {
     _addIfNonNull(
         'gestureNavigationEnabled', settings.gestureNavigationEnabled);
     _addSettingIfPresent('userAgent', settings.userAgent);
+    _addIfNonNull('mixedContentMode', settings.mixedContentMode?.index);
     return map;
   }
 
