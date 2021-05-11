@@ -35,8 +35,10 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
   private final FlutterWebViewClient flutterWebViewClient;
   private final Handler platformThreadHandler;
 
+  public static WebChromeClient webChromeClient;
+
   // Verifies that a url opened by `Window.open` has a secure url.
-  private class FlutterWebChromeClient extends WebChromeClient {
+  public class FlutterWebChromeClient extends WebChromeClient {
     @Override
     public boolean onCreateWindow(
         final WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
@@ -98,7 +100,7 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
 
     // Multi windows is set with FlutterWebChromeClient by default to handle internal bug: b/159892679.
     webView.getSettings().setSupportMultipleWindows(true);
-    webView.setWebChromeClient(new FlutterWebChromeClient());
+    webView.setWebChromeClient(webChromeClient != null ? webChromeClient : new FlutterWebChromeClient());
 
     methodChannel = new MethodChannel(messenger, "plugins.flutter.io/webview_" + id);
     methodChannel.setMethodCallHandler(this);
