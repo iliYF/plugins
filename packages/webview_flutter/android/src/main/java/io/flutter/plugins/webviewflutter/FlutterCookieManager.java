@@ -39,15 +39,16 @@ class FlutterCookieManager implements MethodCallHandler {
         break;
       case "setCookies":
         setCookies(methodCall, result);
+        break;
       case "hasCookies":
         hasCookies(result);
         break;
       case "getCookies":
         getCookies(methodCall, result);
         break;
-
       default:
         result.notImplemented();
+        break;
     }
   }
 
