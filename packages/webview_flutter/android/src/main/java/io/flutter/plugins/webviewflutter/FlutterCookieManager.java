@@ -86,6 +86,7 @@ class FlutterCookieManager implements MethodCallHandler {
     final List<Map<String, Object>> serializedCookies = methodCall.arguments();
 
     CookieManager cookieManager = CookieManager.getInstance();
+    cookieManager.setAcceptCookie(true);
 
     for (Map<String, Object> cookieMap : serializedCookies) {
       Object domain = cookieMap.get("domain");
