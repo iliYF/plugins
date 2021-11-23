@@ -128,6 +128,8 @@
     [self onUpdateSettings:call result:result];
   } else if ([[call method] isEqualToString:@"loadUrl"]) {
     [self onLoadUrl:call result:result];
+  } else if ([[call method] isEqualToString:@"postUrl"]) {
+    [self postUrl:call result:result];
   } else if ([[call method] isEqualToString:@"canGoBack"]) {
     [self onCanGoBack:call result:result];
   } else if ([[call method] isEqualToString:@"canGoForward"]) {
@@ -408,6 +410,28 @@
   }
   NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:nsUrl];
   [request setAllHTTPHeaderFields:headers];
+  [_webView loadRequest:request];
+  return true;
+}
+
+- (bool)postUrl:(FlutterMethodCall*)call result:(FlutterResult)result {
+  NSDictionary<NSString*, id>* args = [call arguments];
+
+  NSString* stringUrl = (NSString*)args[@"url"];
+  NSURL* url = [NSURL URLWithString:stringUrl];
+  if (!url) {
+    return false;
+  }
+
+  NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
+  FlutterStandardTypedData* postData = (FlutterStandardTypedData*)args[@"params"];
+  NSString* contentLength = @(postData.data.length).stringValue;
+
+  [request setHTTPMethod:@"POST"];
+  [request setHTTPBody:postData.data];
+
+  [request setValue:contentLength forHTTPHeaderField:@"Content-Length"];
+  [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
   [_webView loadRequest:request];
   return true;
 }
