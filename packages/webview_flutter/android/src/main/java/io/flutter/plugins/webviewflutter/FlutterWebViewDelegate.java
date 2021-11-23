@@ -4,7 +4,7 @@ import android.webkit.WebViewClient;
 
 public interface FlutterWebViewDelegate {
 
-    WebViewClient createWebViewClient();
+    WebViewClient createWebViewClient(WebViewClient flutterWebViewClient);
     FlutterWebChromeClient createWebChromeClient();
 
 }

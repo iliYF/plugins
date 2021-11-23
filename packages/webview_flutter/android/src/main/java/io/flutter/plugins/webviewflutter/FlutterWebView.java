@@ -59,39 +59,34 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
     // Multi windows is set with FlutterWebChromeClient by default to handle internal bug: b/159892679.
     webView.getSettings().setSupportMultipleWindows(true);
 
-    WebViewClient client = null;
     FlutterWebChromeClient chromeClient = null;
     if (delegate != null) {
-      client = delegate.createWebViewClient();
       chromeClient = delegate.createWebChromeClient();
-    }
-    if (client == null) {
-      client = new WebViewClient() {
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        @Override
-        public boolean shouldOverrideUrlLoading(@NonNull WebView view, @NonNull WebResourceRequest request) {
-          final String url = request.getUrl().toString();
-          if (!flutterWebViewClient.shouldOverrideUrlLoading(
-                  FlutterWebView.this.webView, request)) {
-            webView.loadUrl(url);
-          }
-          return true;
-        }
-
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-          if (!flutterWebViewClient.shouldOverrideUrlLoading(
-                  FlutterWebView.this.webView, url)) {
-            webView.loadUrl(url);
-          }
-          return true;
-        }
-      };
     }
     if (chromeClient == null) {
       chromeClient = new FlutterWebChromeClient();
     }
-    chromeClient.client = client;
+    chromeClient.client = new WebViewClient() {
+      @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+      @Override
+      public boolean shouldOverrideUrlLoading(@NonNull WebView view, @NonNull WebResourceRequest request) {
+        final String url = request.getUrl().toString();
+        if (!flutterWebViewClient.shouldOverrideUrlLoading(
+                FlutterWebView.this.webView, request)) {
+          webView.loadUrl(url);
+        }
+        return true;
+      }
+
+      @Override
+      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        if (!flutterWebViewClient.shouldOverrideUrlLoading(
+                FlutterWebView.this.webView, url)) {
+          webView.loadUrl(url);
+        }
+        return true;
+      }
+    };
     webView.setWebChromeClient(chromeClient);
 
     methodChannel = new MethodChannel(messenger, "plugins.flutter.io/webview_" + id);
@@ -368,9 +363,10 @@ public class FlutterWebView implements PlatformView, MethodCallHandler {
         case "hasNavigationDelegate":
           final boolean hasNavigationDelegate = (boolean) settings.get(key);
 
-          final WebViewClient webViewClient =
-              flutterWebViewClient.createWebViewClient(hasNavigationDelegate);
-
+          WebViewClient webViewClient = flutterWebViewClient.createWebViewClient(hasNavigationDelegate);
+          if (delegate != null) {
+            webViewClient = delegate.createWebViewClient(webViewClient);
+          }
           webView.setWebViewClient(webViewClient);
           break;
         case "debuggingEnabled":
